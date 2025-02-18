@@ -1,0 +1,237 @@
+﻿[
+  {
+    "description": "Simple collision on a single track, same direction",
+    "Railway": {
+      "Stations": ["A", "B"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B"],
+      ["A", "B"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "Simple collision on a single track, opposite direction",
+    "Railway": {
+      "Stations": ["A", "B"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B"],
+      ["B", "A"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "No collision, different tracks",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B"],
+      ["C", "D"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision Start same Station",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "A", "Station2": "C", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B"],
+      ["A", "C"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "No collision, longer path, different starting points",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C"],
+      ["B", "C", "D"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision, same path, different starting points",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C"],
+      ["B", "C", "D"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision, overtaking",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C"],
+      ["A", "B", "C"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "Collision at specific point C",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "C", "Length": 2 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "C", "D"],
+      ["B", "C", "D"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision head-on",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C"],
+      ["C", "B", "A"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "No collision, looping path with different end point",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        {"Station1": "A", "Station2": "B", "Length": 1},
+        {"Station1": "B", "Station2": "C", "Length": 1},
+        {"Station1": "C", "Station2": "A", "Length": 1}
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C", "A", "B"],
+      ["B", "C", "A", "B", "C"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision, looping path with same paths",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        {"Station1": "A", "Station2": "B", "Length": 1},
+        {"Station1": "B", "Station2": "C", "Length": 1},
+        {"Station1": "C", "Station2": "A", "Length": 1}
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C", "A", "B"],
+      ["A", "B", "C", "A", "B"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "No collision, different travel times to intersection",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "C", "Length": 2 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "C", "D"],
+      ["B", "C", "D"]
+    ],
+    "ExpectedCollision": false
+  },
+  {
+    "description": "Collision, same path. One train is faster",
+    "Railway": {
+      "Stations": ["A", "B", "C"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C"],
+      ["A", "B", "C"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "Complex network, Start On same",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D", "E", "F"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 2 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 3 },
+        { "Station1": "A", "Station2": "E", "Length": 1 },
+        { "Station1": "E", "Station2": "F", "Length": 4 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C", "D"],
+      ["A", "E", "F"]
+    ],
+    "ExpectedCollision": true
+  },
+  {
+    "description": "No Collision",
+    "Railway": {
+      "Stations": ["A", "B", "C", "D", "E", "F"],
+      "Tracks": [
+        { "Station1": "A", "Station2": "B", "Length": 1 },
+        { "Station1": "B", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "D", "Length": 1 },
+        { "Station1": "E", "Station2": "C", "Length": 1 },
+        { "Station1": "C", "Station2": "F", "Length": 1 }
+      ]
+    },
+    "Trains": [
+      ["A", "B", "C", "F"],
+      ["E", "C", "D"]
+    ],
+    "ExpectedCollision": false
+  }
+]
