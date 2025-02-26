@@ -19,7 +19,7 @@
     *  Tracks are bidirectional
     *  There can be multiple tracks between same pair of stations (@)
  * Solution Comments:
-    * Collision check (both track and station) are performed on each train addition
+    * Collision Checks are performed on PlanRailway
     * if (@) may not find existing solution, due unordered planning
  */
 
