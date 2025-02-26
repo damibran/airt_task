@@ -14,7 +14,7 @@
  * Task Clarifications:
     *  Collision:
     *       - Two or more trains on one station in one time
-    *       - Two trains cannot have same enter time to one track
+    *       - Two trains cannot have same enter time to one track (same as prev)
     *       - Trains opposite direction on one track with time overlap
     *  Tracks are bidirectional
     *  There can be multiple tracks between same pair of stations (@)
