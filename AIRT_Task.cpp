@@ -194,21 +194,18 @@ struct TrackRailwayHash
 class Train final
 {
 public:
-    Train(const std::vector<std::shared_ptr<Track>>& path,
-          const std::vector<std::pair<std::shared_ptr<Station>, unsigned int>>& station_times):
-        path_(path)
-        , station_times_(station_times)
+    Train(const std::vector<std::shared_ptr<Station>>& stations):
+        stations_(stations)
     {
     }
 
 private:
-    std::vector<std::shared_ptr<Track>> path_;
-    std::vector<std::pair<std::shared_ptr<Station>, unsigned int>> station_times_;
+    std::vector<std::shared_ptr<Station>> stations_;
 
 public:
-    const decltype(station_times_)& GetStationTimes() const
+    const decltype(stations_)& GetStations() const
     {
-        return station_times_;
+        return stations_;
     }
 };
 
@@ -253,7 +250,7 @@ public:
         }
     }
 
-    void AddTrain(const Json::Value& train_js)
+    void AddTrainDefferedPlanning(const Json::Value& train_js)
     {
         std::vector<std::shared_ptr<Station>> train_stations;
 
@@ -269,86 +266,71 @@ public:
             }
         }
 
-        std::vector<std::shared_ptr<Track>> train_path;
-        std::vector<std::pair<std::shared_ptr<Station>, unsigned int>> station_times;
-        unsigned int current_time = 0;
+        trains_.push_back(std::make_unique<Train>(train_stations));
+    }
 
-        station_times.emplace_back(train_stations[0], current_time);
-
-        for (int i = 0; i < train_stations.size() - 1; ++i)
+    void PlanRailway()
+    {
+        std::unordered_map<std::shared_ptr<Station>, std::unordered_set<unsigned int>> station_times;
+        for (const auto& train : trains_)
         {
-            auto s1 = *stations_.find(train_stations[i]);
-            auto s2 = *stations_.find(train_stations[i + 1]);
+            const std::vector<std::shared_ptr<Station>>& train_stations = train->GetStations();
+            unsigned int current_time = 0;
 
-            bool inserted = false;
+            const auto& first_station = train_stations[0];
 
-            // forward direction
-            auto possible_tracks = tracks_.equal_range(std::pair{s1, s2});
-            auto it = tracks_.end();
-            for (it = possible_tracks.first; it != possible_tracks.second; ++it)
+            if (station_times.count(first_station) && station_times[first_station].count(current_time))
             {
-                inserted = it->get()->TryAddTrainWithTime(current_time, true);
-                if (inserted)
-                    break;
-            }
-
-            if (!inserted)
-            {
-                // backward direction
-                possible_tracks = tracks_.equal_range(std::pair{s2, s1});
-                for (it = possible_tracks.first; it != possible_tracks.second; ++it)
-                {
-                    inserted = it->get()->TryAddTrainWithTime(current_time, false);
-                    if (inserted)
-                        break;
-                }
-            }
-
-            if (!inserted)
-            {
-                std::cerr << "RailWay has collisions" << std::endl;
                 throw std::invalid_argument("RailWay has collisions");
             }
 
-            current_time += it->get()->length;
+            station_times[first_station].insert(current_time);
 
-            station_times.emplace_back(s2, current_time);
-            train_path.push_back(*it);
-        }
-
-        trains_.emplace_back(std::make_unique<Train>(train_path, station_times));
-
-        if (TrainsHaveStationCollisions())
-        {
-            std::cerr << "RailWay has collisions" << std::endl;
-            throw std::invalid_argument("RailWay has collisions");
-        }
-    }
-
-    bool TrainsHaveStationCollisions()
-    {
-        for (auto it = trains_.begin(); it != trains_.end(); ++it)
-        {
-            for (auto it2 = it + 1; it2 != trains_.end(); ++it2)
+            for (int i = 0; i < train_stations.size() - 1; ++i)
             {
-                std::unordered_map<std::shared_ptr<Station>, std::unordered_set<unsigned int>> station_times;
-                for (const auto& it1arrival : it->get()->GetStationTimes())
+                auto s1 = *stations_.find(train_stations[i]);
+                auto s2 = *stations_.find(train_stations[i + 1]);
+
+                bool inserted = false;
+
+                // forward direction
+                auto possible_tracks = tracks_.equal_range(std::pair{s1, s2});
+                auto it = tracks_.end();
+                for (it = possible_tracks.first; it != possible_tracks.second; ++it)
                 {
-                    station_times[it1arrival.first].insert(it1arrival.second);
+                    inserted = it->get()->TryAddTrainWithTime(current_time, true);
+                    if (inserted)
+                        break;
                 }
 
-                for (const auto& it2arrival : it2->get()->GetStationTimes())
+                if (!inserted)
                 {
-                    const std::shared_ptr<Station>& station = it2arrival.first;
-                    unsigned int time = it2arrival.second;
-                    if (station_times.count(station) && station_times[station].count(time))
+                    // backward direction
+                    possible_tracks = tracks_.equal_range(std::pair{s2, s1});
+                    for (it = possible_tracks.first; it != possible_tracks.second; ++it)
                     {
-                        return true;
+                        inserted = it->get()->TryAddTrainWithTime(current_time, false);
+                        if (inserted)
+                            break;
                     }
                 }
+
+                if (!inserted)
+                {
+                    std::cerr << "RailWay has collisions" << std::endl;
+                    throw std::invalid_argument("RailWay has collisions");
+                }
+
+                current_time += it->get()->length;
+
+                if (station_times.count(s2) && station_times[s2].count(current_time))
+                {
+                    throw std::invalid_argument("RailWay has collisions");
+                }
+
+                station_times[s2].insert(current_time);
             }
         }
-        return false;
     }
 
 private:
@@ -365,24 +347,29 @@ int main()
 
     for (const Json::Value& test_js : root)
     {
-        std::cout << "TEST CASE:\n" << test_js.toStyledString() << std::endl;
-        std::shared_ptr<Railway> train_network = std::make_shared<Railway>(test_js["Railway"]);
+        if (test_js["Railway"]["Stations"].size() <= 10)
+            std::cout << "TEST CASE:\n" << test_js.toStyledString() << std::endl;
+        else
+            std::cout << "TEST CASE: size is too big, description: " << test_js["description"] << std::endl;
 
-        bool has_collison = false;
+        std::shared_ptr<Railway> railway = std::make_shared<Railway>(test_js["Railway"]);
+
         for (const Json::Value& train_js : test_js["Trains"])
         {
-            try
-            {
-                train_network->AddTrain(train_js);
-            }
-            catch (std::invalid_argument& e)
-            {
-                has_collison = true;
-            }
+            railway->AddTrainDefferedPlanning(train_js);
         }
-        std::cout << "RESULT: " << has_collison << " expected: " << test_js["ExpectedCollision"] <<
+
+        bool has_collison = false;
+        try
+        {
+            railway->PlanRailway();
+        }
+        catch (std::invalid_argument& e)
+        {
+            has_collison = true;
+        }
+
+        std::cout << "RESULT: " << std::boolalpha << has_collison << " expected: " << test_js["ExpectedCollision"] <<
             std::endl;
     }
-
-    std::cout << "Railway Has No Collisions" << std::endl;
 }
